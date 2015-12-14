@@ -1,17 +1,19 @@
-var port = 5001,
-    io = require('socket.io').listen(port),
-    redis = require('redis').createClient(),
+const SOCKET_PORT = 5001;
+const REDIS_HOST = '127.0.0.1';
+const REDIS_PORT = 6379;
+
+var io = require('socket.io').listen(SOCKET_PORT),
+    redis = require('redis').createClient(REDIS_PORT, REDIS_HOST, {}),
     connectedSockets = [];
 
-logInfo('binding on ' + port + ' ...');
-
+logInfo('binding on ' + SOCKET_PORT + ' ...');
 
 redis.subscribe('create_msg');
 redis.on('message', function(channel, message) {
-  mes = JSON.parse(message);
+  msg = JSON.parse(message);
   switch(channel) {
     case 'create_msg':
-      io.to(mes.room_id).emit("create_mes", mes.contents);
+      io.to(msg.broadcast_id).emit("create_mes", msg);
       logInfo('Getting mes...')
       break;
     default:
@@ -24,12 +26,15 @@ io.on('connection', function(socket) {
   socket.emit('connected');
 
   socket.on("init", function(req) {
-    socket.setRoominfo = req.room;
-    socket.join(req.room);
+    socket.setRoominfo = req.broadcast_id;
+    socket.join(req.broadcast_id);
     socket.join(socket.id);
 
-    logInfo(req.room + " join");
+    logInfo(req.broadcast_id + " join");
   });
+
+  // socket.on("login_room", function(req) {
+  // });
 });
 
 function logInfo(str) {
