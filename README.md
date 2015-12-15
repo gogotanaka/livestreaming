@@ -1,4 +1,5 @@
 ```
 npm install
-node main.js
+npm install pm2 -g
+pm2 start main.js
 ```
