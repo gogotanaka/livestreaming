@@ -4,16 +4,16 @@ const REDIS_PORT = 6379;
 
 var io = require('socket.io').listen(SOCKET_PORT),
     redis = require('redis').createClient(REDIS_PORT, REDIS_HOST, {}),
-    connectedSockets = [];
+    roomViewsTbl = {};
 
 logInfo('binding on ' + SOCKET_PORT + ' ...');
 
 redis.subscribe('create_msg');
-redis.on('message', function(channel, message) {
-  msg = JSON.parse(message);
+redis.on('message', function(channel, raw_params) {
+  params = JSON.parse(raw_params);
   switch(channel) {
     case 'create_msg':
-      io.to(msg.broadcast_id).emit("create_mes", msg);
+      io.to(params.broadcast_id).emit("create_mes", params);
       logInfo('Getting mes...')
       break;
     default:
@@ -28,13 +28,22 @@ io.on('connection', function(socket) {
   socket.on("init", function(req) {
     socket.setRoominfo = req.broadcast_id;
     socket.join(req.broadcast_id);
-    socket.join(socket.id);
+
+    if (!(roomViewsTbl[req.broadcast_id] > 0)) {
+      roomViewsTbl[req.broadcast_id] = 0;
+    }
+    roomViewsTbl[req.broadcast_id] += 1;
 
     logInfo(req.broadcast_id + " join");
   });
 
   // socket.on("login_room", function(req) {
   // });
+  socket.on('disconnect', function() {
+    console.log('[info] ' + socket.id + ' has disconnected');
+    socket.emit('connected');
+    roomViewsTbl[socket.setRoominfo] -= 1;
+  });
 });
 
 function logInfo(str) {
@@ -52,11 +61,7 @@ function logErr(str) {
 
     // socket.to('some room').emit('create_mes', JSON.parse(message));
 
-  // socket.on('disconnect', function() {
-  //   console.log('[info] ' + socket.id + ' has disconnected');
-  //   var i = connectedSockets.indexOf(socket);
-  //   connectedSockets.splice(i, 1);
-  // });
+
 
 
     // show user name
