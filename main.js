@@ -1,9 +1,10 @@
 const SOCKET_PORT = 5001;
 const REDIS_HOST = '127.0.0.1';
 const REDIS_PORT = 6379;
+const REDS_PASS = 'dNc072dNc072dNc072dNc072';
 
 var io = require('socket.io').listen(SOCKET_PORT),
-    redis = require('redis').createClient(REDIS_PORT, REDIS_HOST, {}),
+    redis = require('redis').createClient(REDIS_PORT, REDIS_HOST, { auth_pass: REDS_PASS }),
     roomViewsTbl = {},
     app = require('express')();
 
