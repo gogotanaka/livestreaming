@@ -4,9 +4,14 @@ const REDIS_PORT = 6379;
 
 var io = require('socket.io').listen(SOCKET_PORT),
     redis = require('redis').createClient(REDIS_PORT, REDIS_HOST, {}),
-    roomViewsTbl = {};
+    roomViewsTbl = {},
+    app = require('express')();
 
 logInfo('binding on ' + SOCKET_PORT + ' ...');
+
+app.get('/', function(req, res){
+  res.send('');
+});
 
 redis.subscribe('create_msg');
 redis.on('message', function(channel, raw_params) {
