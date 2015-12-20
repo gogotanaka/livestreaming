@@ -1,18 +1,21 @@
 const SOCKET_PORT = 5001;
+const APP_PORT = SOCKET_PORT + 1;
+const APP_HOST = '127.0.0.1';
 const REDIS_HOST = '127.0.0.1';
 const REDIS_PORT = 6379;
-const REDS_PASS = 'dNc072dNc072dNc072dNc072';
 
 var io = require('socket.io').listen(SOCKET_PORT),
-    redis = require('redis').createClient(REDIS_PORT, REDIS_HOST, { auth_pass: REDS_PASS }),
-    roomViewsTbl = {},
-    app = require('express')();
+    redis = require('redis').createClient(REDIS_PORT, REDIS_HOST, {}),
+    fs = require('fs'),
+    http = require('http'),
+    roomViewsTbl = {};
 
-logInfo('binding on ' + SOCKET_PORT + ' ...');
+logInfo('binding on ' + SOCKET_PORT);
 
-app.get('/', function(req, res){
-  res.send('');
-});
+http.createServer(function (req, res) {
+  res.writeHead(200, {'Content-Type': 'text/plain'});
+  res.end(JSON.stringify(roomViewsTbl));
+}).listen(APP_PORT, APP_HOST);
 
 redis.subscribe('create_msg');
 redis.on('message', function(channel, raw_params) {
@@ -28,62 +31,33 @@ redis.on('message', function(channel, raw_params) {
 });
 
 io.on('connection', function(socket) {
-  logInfo('new client id:' + socket.id + '...');
   socket.emit('connected');
 
   socket.on("init", function(req) {
-    socket.setRoominfo = req.broadcast_id;
-    socket.join(req.broadcast_id);
+    var broadcast_id = req.broadcast_id;
+    socket.setRoominfo = broadcast_id;
+    socket.join(broadcast_id);
 
-    if (!(roomViewsTbl[req.broadcast_id] > 0)) {
-      roomViewsTbl[req.broadcast_id] = 0;
+    if (roomViewsTbl[broadcast_id] == undefined) {
+      roomViewsTbl[broadcast_id] = 0;
     }
-    roomViewsTbl[req.broadcast_id] += 1;
+    roomViewsTbl[broadcast_id] += 1;
 
-    logInfo(req.broadcast_id + " join");
+    logInfo(socket.id + " join to room: " + broadcast_id);
   });
 
-  // socket.on("login_room", function(req) {
-  // });
   socket.on('disconnect', function() {
-    console.log('[info] ' + socket.id + ' has disconnected');
-    socket.emit('connected');
+    logInfo(socket.id + ' has disconnected');
     roomViewsTbl[socket.setRoominfo] -= 1;
   });
 });
 
 function logInfo(str) {
-  console.log('[info] ' + str);
+  fs.appendFile('main.log', (str + '\n'), function (err) {
+    if (err) return null;
+  });
 }
 
 function logErr(str) {
   console.log('[err] ' + str);
 }
-
-
-// connectedSockets.push(socket);
-// console.log('[info] number of connected sockets: ' + connectedSockets.length);
-
-
-    // socket.to('some room').emit('create_mes', JSON.parse(message));
-
-
-
-
-    // show user name
-    // socket.on('show username', function(username) {
-    //     // set username into people
-    //     people[socket.id] = username;
-    //     // add all username in userlist
-    //     var userlist = [];
-    //     for(key in people){
-    //         userlist.push(people[key]);
-    //         console.log(userlist);
-    //     }
-    //     // send username to client
-    //     io.emit('show username', username); // show username in form header
-    //     io.emit('show userlist', userlist); // show userlist in main
-    // });
-    // // disconnect socket
-
-// });
