@@ -1,0 +1,105 @@
+<body>
+  <img src="" width="640" height="480" class="video" ></img>
+  <audio autoplay src="" class="audio"></audio>
+  <audio autoplay src="" class="audio2"></audio>
+  <div class='message'></div>
+  <div id="wrapper">
+    <button id="start">start listening</button>
+    <button id="stop">stop listening</button>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.3.0/lodash.js"></script>
+
+  <script>
+    $(function() {
+      // id of distribution!!!
+      var id = 100
+
+      var frameRate = 10;
+      var $video = $('.video');
+      var $audio = $('.audio');
+      var $audio2 = $('.audio2');
+      var socket = io('http://45.55.10.134/');
+
+      var videoQueue = [];
+      var videoIntervalId = null;
+
+      var latestDepict = null;
+      var latestAudioNode = null;
+      var distributionCheckId = null;
+
+      var renderVideo = function(data) {
+        // audio will always arrive later than video(image)
+        if (data.video) {
+          // videoQueue.push(data);
+          $video.attr('src', data.video);
+          console.log('size' + data.video.length);
+          console.log(new Number(new Date()) - data.ts);
+        }
+        // if (data.audio) {
+        //   if (latestAudioNode = $audio2) {
+        //     $audio.attr('src', data.audio);
+        //     latestAudioNode = $audio;
+        //   } else {
+        //     $audio2.attr('src', data.audio);
+        //     latestAudioNode = $audio2;
+        //   }
+
+        //   if (videoIntervalId) clearInterval(videoIntervalId);
+        //   videoIntervalId = setInterval(function() {
+        //     var shifted = videoQueue.shift();
+        //     if (shifted === undefined || shifted.ts > (data.ts + 2000)) {
+        //       clearInterval(videoIntervalId);
+        //     }
+        //     $video.attr('src', shifted.video);
+        //   }, 1000 / frameRate);
+        // }
+        latestDepict = new Date();
+      }
+
+      var startCheck = function () {
+        latestDepict = new Date();
+        distributionCheckId = setInterval(checkIsVideoBeingDistributed, 500);
+      }
+
+      var endCheck = function () {
+        clearInterval(distributionCheckId);
+        latestDepict = null;
+        $('.message').empty();
+      }
+
+      var checkIsVideoBeingDistributed = function() {
+        if (latestDepict) {
+          if (new Date() - latestDepict > 2000) {
+            $('.message').text('現在配信されていません');
+          } else {
+            $('.message').empty()
+          }
+        }
+      }
+
+      var startListening = function() {
+        socket.emit('start listening', id);
+        socket.on('stream', renderVideo);
+        startCheck();
+      }
+
+      var stopListening = function() {
+        socket.emit('stop listening', id);
+        socket.removeListener('stream', renderVideo);
+        $video.attr('src', '');
+        endCheck();
+      }
+
+      //ボタンイベント
+      $("#start").click(function() {
+        startListening();
+      });
+      $("#stop").click(function() {
+        stopListening();
+      });
+    })
+  </script>
+</body>
+
