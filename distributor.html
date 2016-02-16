@@ -8,8 +8,10 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.3.0/lodash.js"></script>
-  <script src="/static/recorder.js"></script>
+  <script src="./static/recorder.js"></script>
   <script>
+    const SOCKET_HOST = 'http://45.55.10.134/';
+
     $(function() {
       // id of this user!!!
       var id = 100
@@ -21,7 +23,7 @@
       var ctx = canvas.getContext('2d');
       var videoStream = null;
 
-      var socket = io('http://45.55.10.134/');
+      var socket = io(SOCKET_HOST);
       var videoStreamId = null;
       var audioStreamId = null;
       var d = null;
