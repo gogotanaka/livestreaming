@@ -14,7 +14,7 @@
 
     $(function() {
       // id of this user!!!
-      var id = 100
+      var broadcast_id = 100
 
       var frameRate = 10;
       var video = document.querySelector('video');
@@ -97,7 +97,7 @@
       var startStreaming = function() {
         video.src = window.URL.createObjectURL(videoStream);
 
-        socket.emit('start distribution', id);
+        socket.emit('start distribution', broadcast_id);
         videoStreamId = startVideoStreaming();
         // audioStreamId = startAudioStreaming();
       }
@@ -105,7 +105,7 @@
       var stopStreaming = function() {
         clearInterval(videoStreamId);
         clearInterval(audioStreamId);
-        socket.emit('stop distribution', id);
+        socket.emit('stop distribution', broadcast_id);
         if(_.isFunction(videoStream.stop)) {
           videoStream.stop()
         }

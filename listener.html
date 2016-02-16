@@ -14,8 +14,7 @@
   <script>
     $(function() {
       const SOCKET_HOST = 'http://45.55.10.134/';
-      // id of distribution!!!
-      var id = 100
+      var broadcast_id = 100
 
       var frameRate = 10;
       var $video = $('.video');
@@ -81,13 +80,13 @@
       }
 
       var startListening = function() {
-        socket.emit('start listening', id);
+        socket.emit('start listening', broadcast_id);
         socket.on('stream', renderVideo);
         startCheck();
       }
 
       var stopListening = function() {
-        socket.emit('stop listening', id);
+        socket.emit('stop listening', broadcast_id);
         socket.removeListener('stream', renderVideo);
         $video.attr('src', '');
         endCheck();
