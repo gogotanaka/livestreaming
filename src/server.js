@@ -4,6 +4,7 @@ import path from 'path'
 import io from 'socket.io'
 
 const app = express()
+const port = process.env.PORT || 5001
 
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*")
@@ -22,8 +23,6 @@ app.get('/listener', (req, res) => {
 })
 
 app.use('/static', express.static('static'));
-
-const port = process.env.PORT || 5001
 
 const server = http.Server(app).listen(port, () => {
   console.log('listening')
